@@ -3,12 +3,13 @@ package db
 import (
 	"database/sql"
 	_ "embed"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
-var migrationFunctions = []func(trans *sql.Tx) error{
+var migrationFunctions = []func(trans *sqlx.Tx) error{
 	migrate0to1,
 }
 
@@ -16,7 +17,7 @@ func (db *DB) Migrate() error {
 	log.Info().Msg("running migrations")
 
 	// list tables
-	tx, err := db.pool.Begin()
+	tx, err := db.pool.Beginx()
 	if err != nil {
 		return errors.WithMessage(err, "could not begin transaction")
 	}
@@ -68,7 +69,7 @@ func (db *DB) Migrate() error {
 //go:embed migrations/0to1.sql
 var migrate0to1SQL string
 
-func migrate0to1(trans *sql.Tx) error {
+func migrate0to1(trans *sqlx.Tx) error {
 	log.Info().Msg("migrating new database to v1")
 
 	_, err := trans.Exec(migrate0to1SQL)

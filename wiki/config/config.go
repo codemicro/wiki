@@ -16,11 +16,13 @@ var HTTP = struct {
 	Port              int
 	TrustProxyHeaders bool
 	ExternalURL       string
+	SecureCookies     bool
 }{
 	Host:              asString(withDefault("http.host", "0.0.0.0")),
 	Port:              asInt(withDefault("http.port", 8080)),
 	TrustProxyHeaders: asBool(fetchFromFile("http.trustProxyHeaders")),
 	ExternalURL:       asString(withDefault("http.externalURL", "https://localhost")),
+	SecureCookies:     asBool(withDefault("http.secureCookies", true)),
 }
 
 var Database = struct {

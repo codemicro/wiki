@@ -1,5 +1,12 @@
 -- Migrate a new database to v1 format.
 
+CREATE TABLE "users"
+(
+    id TEXT(36) PRIMARY KEY,
+    external_id TEXT UNIQUE,
+    name TEXT
+);
+
 CREATE TABLE "version"
 (
     version INT

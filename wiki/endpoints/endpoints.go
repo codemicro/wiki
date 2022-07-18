@@ -1,6 +1,8 @@
 package endpoints
 
 import (
+	"crypto/rand"
+	goalone "github.com/bwmarrin/go-alone"
 	"github.com/codemicro/wiki/wiki/config"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
@@ -9,9 +11,12 @@ import (
 	saml "github.com/russellhaering/gosaml2"
 )
 
+const sessionCookieKey = "cdmwiki_session"
+
 type Endpoints struct {
 	db              *db.DB
 	serviceProvider *saml.SAMLServiceProvider
+	tokenGenerator  *goalone.Sword
 }
 
 func New(dbi *db.DB) *Endpoints {
@@ -25,9 +30,13 @@ func New(dbi *db.DB) *Endpoints {
 		NameIdFormat:                "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
 	}
 
+	randomData := make([]byte, 64)
+	_, _ = rand.Read(randomData)
+
 	return &Endpoints{
 		db:              dbi,
 		serviceProvider: sp,
+		tokenGenerator:  goalone.New(randomData, goalone.Timestamp),
 	}
 }
 

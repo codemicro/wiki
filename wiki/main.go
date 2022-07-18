@@ -25,7 +25,7 @@ func run() error {
 		return errors.Wrap(err, "failed migration")
 	}
 
-	e := endpoints.New(nil)
+	e := endpoints.New(database)
 	app := e.SetupApp()
 
 	serveAddr := config.HTTP.Host + ":" + strconv.Itoa(config.HTTP.Port)

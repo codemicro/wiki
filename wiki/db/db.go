@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/codemicro/wiki/wiki/config"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -12,8 +13,10 @@ import (
 	"time"
 )
 
+var ErrNotFound = errors.New("db: record not found")
+
 type DB struct {
-	pool           *sql.DB
+	pool           *sqlx.DB
 	ContextTimeout time.Duration
 }
 
@@ -22,7 +25,7 @@ const maxConnectionAttempts = 4
 func New() (*DB, error) {
 	dsn := config.Database.Filename
 	log.Info().Msg("connecting to database")
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sqlx.Open("sqlite3", dsn)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not open SQL connection")
 	}
@@ -64,7 +67,7 @@ func (db *DB) newContext() (context.Context, func()) {
 	return context.WithTimeout(context.Background(), db.ContextTimeout)
 }
 
-func smartRollback(tx *sql.Tx) {
+func smartRollback(tx *sqlx.Tx) {
 	err := tx.Rollback()
 	if err != nil && !errors.Is(err, sql.ErrTxDone) {
 		log.Warn().Stack().Err(errors.WithStack(err)).Str("location", "smartRollback").Msg("failed to rollback transaction")

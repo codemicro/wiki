@@ -1,11 +1,14 @@
 package endpoints
 
 import (
-	"bytes"
-	"fmt"
+	"github.com/codemicro/wiki/wiki/config"
+	"github.com/codemicro/wiki/wiki/db"
+	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/codemicro/wiki/wiki/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/lithammer/shortuuid/v4"
 	"github.com/pkg/errors"
+	"time"
 )
 
 func (e *Endpoints) Get_SAMLInitiate(ctx *fiber.Ctx) error {
@@ -24,20 +27,35 @@ func (e *Endpoints) Post_SAMLInbound(ctx *fiber.Ctx) error {
 		return util.NewRichError(fiber.StatusBadRequest, "unable to verify inbound SAML login", err)
 	}
 
-	rw := new(bytes.Buffer)
+	var loginUser *db.User
 
-	fmt.Fprintf(rw, "NameID: %s\n", assertionInfo.NameID)
+	user, err := e.db.GetUserByExternalID(assertionInfo.NameID)
+	if err == nil {
+		loginUser = user
+	} else if errors.Is(err, db.ErrNotFound) {
+		loginUser = new(db.User)
+		loginUser.ExternalID = assertionInfo.NameID
+		if nameVal, found := assertionInfo.Values["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]; found {
+			loginUser.Name.String = nameVal.Values[0].Value
+			loginUser.Name.Valid = true
+		}
+		loginUser.ID = shortuuid.New()
 
-	fmt.Fprintf(rw, "Assertions:\n")
-
-	for key, val := range assertionInfo.Values {
-		fmt.Fprintf(rw, "  %s: %+v\n", key, val)
+		if err := e.db.CreateUser(loginUser); err != nil {
+			return errors.WithStack(err)
+		}
+	} else if err != nil {
+		return errors.WithStack(err)
 	}
 
-	fmt.Fprintf(rw, "\n")
+	sessionToken := e.tokenGenerator.Sign([]byte(loginUser.ID))
+	ctx.Cookie(&fiber.Cookie{
+		Name:     sessionCookieKey,
+		Value:    string(sessionToken),
+		Expires:  time.Time{},
+		Secure:   config.HTTP.SecureCookies,
+		HTTPOnly: true,
+	})
 
-	fmt.Fprintf(rw, "Warnings:\n")
-	fmt.Fprintf(rw, "%+v\n", assertionInfo.WarningInfo)
-
-	return ctx.Send(rw.Bytes())
+	return ctx.Redirect(urls.Index)
 }
