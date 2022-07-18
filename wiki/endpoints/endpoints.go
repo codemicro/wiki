@@ -8,6 +8,7 @@ import (
 	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/codemicro/wiki/wiki/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/pkg/errors"
 	saml "github.com/russellhaering/gosaml2"
 )
 
@@ -19,7 +20,7 @@ type Endpoints struct {
 	tokenGenerator  *goalone.Sword
 }
 
-func New(dbi *db.DB) *Endpoints {
+func New(dbi *db.DB) (*Endpoints, error) {
 	sp := &saml.SAMLServiceProvider{
 		IdentityProviderSSOURL:      config.SAML.SSOURL,
 		IdentityProviderIssuer:      config.SAML.EntityID,
@@ -30,14 +31,24 @@ func New(dbi *db.DB) *Endpoints {
 		NameIdFormat:                "urn:oasis:names:tc:SAML:2.0:nameid-format:persistent",
 	}
 
-	randomData := make([]byte, 64)
-	_, _ = rand.Read(randomData)
+	key, err := dbi.GetSessionKey()
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			randomData := make([]byte, 64)
+			_, _ = rand.Read(randomData)
+			if err := dbi.StoreSessionKey(string(randomData)); err != nil {
+				return nil, errors.WithStack(err)
+			}
+		} else {
+			return nil, errors.WithStack(err)
+		}
+	}
 
 	return &Endpoints{
 		db:              dbi,
 		serviceProvider: sp,
-		tokenGenerator:  goalone.New(randomData, goalone.Timestamp),
-	}
+		tokenGenerator:  goalone.New([]byte(key), goalone.Timestamp),
+	}, nil
 }
 
 func (e *Endpoints) SetupApp() *fiber.App {

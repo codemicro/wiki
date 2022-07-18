@@ -2,9 +2,14 @@
 
 CREATE TABLE "users"
 (
-    id TEXT(36) PRIMARY KEY,
+    id          TEXT(36) PRIMARY KEY,
     external_id TEXT UNIQUE,
-    name TEXT
+    name        TEXT
+);
+
+CREATE TABLE "session_key"
+(
+    key TEXT
 );
 
 CREATE TABLE "version"
