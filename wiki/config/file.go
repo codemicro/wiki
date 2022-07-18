@@ -69,28 +69,39 @@ func fetchFromFile(key string) optionalItem {
 	return optionalItem{cursor, true}
 }
 
-func required(opt optionalItem) any {
+func required(key string) optionalItem {
+	opt := fetchFromFile(key)
 	if !opt.found {
 		log.Fatal().Msgf("required key %s not found", lastKey)
 	}
-	return opt.item
+	return opt
 }
 
-func withDefault(opt optionalItem, defaultValue any) any {
+func withDefault(key string, defaultValue any) optionalItem {
+	opt := fetchFromFile(key)
 	if !opt.found {
-		return defaultValue
+		return optionalItem{item: defaultValue, found: true}
 	}
-	return opt.item
+	return opt
 }
 
-func asInt(x any) int {
-	return x.(int)
+func asInt(x optionalItem) int {
+	if !x.found {
+		return 0
+	}
+	return x.item.(int)
 }
 
-func asString(x any) string {
-	return x.(string)
+func asString(x optionalItem) string {
+	if !x.found {
+		return ""
+	}
+	return x.item.(string)
 }
 
-func asBool(x any) bool {
-	return x.(bool)
+func asBool(x optionalItem) bool {
+	if !x.found {
+		return false
+	}
+	return x.item.(bool)
 }

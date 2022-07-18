@@ -11,6 +11,11 @@ import (
 )
 
 func run() error {
+	err := config.SAML.Load()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	database, err := db.New()
 	if err != nil {
 		return errors.WithStack(err)
