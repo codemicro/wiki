@@ -18,8 +18,19 @@ const samlHTTPPostSSOBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 
 func (sc *samlConfig) Load() error {
 	if sc.Autoload {
-		log.Info().Msg("Automatically loading SAML SSO metadata")
+		if sc.MetadataURL == "" {
+			log.Fatal().Msg("required key saml.metadataURL not found (required by saml.autoload=true)")
+		}
+		log.Info().Msg("automatically loading SAML SSO metadata")
 		return sc.autoloadSAMLMetadata()
+	}
+
+	if sc.EntityID == "" {
+		log.Fatal().Msg("required key saml.idp.entityID not found (required by saml.autoload=false)")
+	} else if sc.SSOURL == "" {
+		log.Fatal().Msg("required key saml.idp.ssoURL not found (required by saml.autoload=false)")
+	} else if sc.rawIDPCert == "" {
+		log.Fatal().Msg("required key saml.idp.signingCertificate not found (required by saml.autoload=false)")
 	}
 
 	cert, err := loadBase64Certificate([]byte(sc.rawIDPCert))
@@ -53,9 +64,7 @@ func (sc *samlConfig) autoloadSAMLMetadata() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
-	_ = ioutil.WriteFile("metadata", bodyContent, 0777)
-
+	
 	metadata := new(saml.EntityDescriptor)
 	if err := xml.Unmarshal(bodyContent, metadata); err != nil {
 		return errors.WithStack(err)

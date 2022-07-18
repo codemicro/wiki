@@ -19,7 +19,8 @@ func New(dbi *db.DB) *Endpoints {
 
 func (e *Endpoints) SetupApp() *fiber.App {
 	app := fiber.New(fiber.Config{
-		ErrorHandler: util.JSONErrorHandler,
+		ErrorHandler:          util.JSONErrorHandler,
+		DisableStartupMessage: true,
 	})
 
 	app.Get(urls.Index, e.Index)

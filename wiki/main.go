@@ -30,7 +30,7 @@ func run() error {
 
 	serveAddr := config.HTTP.Host + ":" + strconv.Itoa(config.HTTP.Port)
 
-	log.Info().Msgf("starting server on %s", serveAddr)
+	log.Info().Msgf("starting server on http://%s", serveAddr)
 
 	if err := app.Listen(serveAddr); err != nil {
 		return errors.Wrap(err, "fiber server run failed")
