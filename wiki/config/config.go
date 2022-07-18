@@ -1,9 +1,9 @@
 package config
 
 import (
-	"crypto/x509"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/pkgerrors"
+	dsig "github.com/russellhaering/goxmldsig"
 )
 
 func InitLogging() {
@@ -12,11 +12,15 @@ func InitLogging() {
 }
 
 var HTTP = struct {
-	Host string
-	Port int
+	Host              string
+	Port              int
+	TrustProxyHeaders bool
+	ExternalURL       string
 }{
-	Host: asString(withDefault("http.host", "0.0.0.0")),
-	Port: asInt(withDefault("http.port", 8080)),
+	Host:              asString(withDefault("http.host", "0.0.0.0")),
+	Port:              asInt(withDefault("http.port", 8080)),
+	TrustProxyHeaders: asBool(fetchFromFile("http.trustProxyHeaders")),
+	ExternalURL:       asString(withDefault("http.externalURL", "https://localhost")),
 }
 
 var Database = struct {
@@ -26,12 +30,12 @@ var Database = struct {
 }
 
 type samlConfig struct {
-	Autoload    bool
-	MetadataURL string
-	EntityID    string
-	SSOURL      string
-	rawIDPCert  string
-	IDPCert     *x509.Certificate
+	Autoload        bool
+	MetadataURL     string
+	EntityID        string
+	SSOURL          string
+	rawIDPCert      string
+	IDPCertificates dsig.X509CertificateStore
 }
 
 var SAML = &samlConfig{

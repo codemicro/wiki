@@ -8,13 +8,16 @@ import (
 	"fmt"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
-	"github.com/ucarion/saml"
-	"io/ioutil"
+	samlTypes "github.com/russellhaering/gosaml2/types"
+	dsig "github.com/russellhaering/goxmldsig"
 	"net/http"
 	"strings"
 )
 
-const samlHTTPPostSSOBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+const (
+	httpPostBinding     = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	httpRedirectBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+)
 
 func (sc *samlConfig) Load() error {
 	if sc.Autoload {
@@ -37,7 +40,7 @@ func (sc *samlConfig) Load() error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	sc.IDPCert = cert
+	sc.IDPCertificates = &dsig.MemoryX509CertificateStore{Roots: []*x509.Certificate{cert}}
 
 	return nil
 }
@@ -60,33 +63,39 @@ func (sc *samlConfig) autoloadSAMLMetadata() error {
 		return errors.New("got non-200 status code for SAML metadata endpoint during autoload")
 	}
 
-	bodyContent, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	
-	metadata := new(saml.EntityDescriptor)
-	if err := xml.Unmarshal(bodyContent, metadata); err != nil {
+	metadata := new(samlTypes.EntityDescriptor)
+	if err := xml.NewDecoder(resp.Body).Decode(metadata); err != nil {
 		return errors.WithStack(err)
 	}
 
 	sc.EntityID = metadata.EntityID
 
 	for _, ssoService := range metadata.IDPSSODescriptor.SingleSignOnServices {
-		if strings.EqualFold(ssoService.Binding, samlHTTPPostSSOBinding) {
+		if strings.EqualFold(ssoService.Binding, httpRedirectBinding) {
 			sc.SSOURL = ssoService.Location
 			goto foundBinding
 		}
 	}
-	return errors.WithStack(fmt.Errorf("no compatible SSO service for binding %s", samlHTTPPostSSOBinding))
+	return errors.WithStack(fmt.Errorf("no compatible SSO service for binding %s", httpRedirectBinding))
 
 foundBinding:
-	sc.IDPCert, err = loadBase64Certificate(
-		[]byte(metadata.IDPSSODescriptor.KeyDescriptor.KeyInfo.X509Data.X509Certificate.Value),
-	)
-	if err != nil {
-		return errors.WithStack(err)
+
+	certStore := &dsig.MemoryX509CertificateStore{
+		Roots: []*x509.Certificate{},
 	}
+
+	for _, kd := range metadata.IDPSSODescriptor.KeyDescriptors {
+		for _, xcert := range kd.KeyInfo.X509Data.X509Certificates {
+			cert, err := loadBase64Certificate([]byte(xcert.Data))
+			if err != nil {
+				return errors.WithStack(err)
+			}
+
+			certStore.Roots = append(certStore.Roots, cert)
+		}
+	}
+
+	sc.IDPCertificates = certStore
 
 	return nil
 }
@@ -98,6 +107,7 @@ func loadBase64Certificate(encoded []byte) (*x509.Certificate, error) {
 		return nil, errors.WithStack(err)
 	}
 
+	// Sometimes we get an extra null byte from YAML certificates
 	decoded = bytes.TrimRight(decoded, "\x00")
 
 	cert, err := x509.ParseCertificate(decoded)
