@@ -10,9 +10,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/pkg/errors"
 	saml "github.com/russellhaering/gosaml2"
+	"time"
 )
 
-const sessionCookieKey = "cdmwiki_session"
+const (
+	sessionCookieKey = "cdmwiki_session"
+	sessionValidFor  = time.Hour * 24 * 7
+)
 
 type Endpoints struct {
 	db              *db.DB

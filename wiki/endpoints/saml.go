@@ -35,10 +35,22 @@ func (e *Endpoints) Post_SAMLInbound(ctx *fiber.Ctx) error {
 	} else if errors.Is(err, db.ErrNotFound) {
 		loginUser = new(db.User)
 		loginUser.ExternalID = assertionInfo.NameID
-		if nameVal, found := assertionInfo.Values["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"]; found {
+
+		if nameVal, found := assertionInfo.Values[config.SAML.NameMappingKey]; found {
 			loginUser.Name.String = nameVal.Values[0].Value
 			loginUser.Name.Valid = true
 		}
+
+		if nameVal, found := assertionInfo.Values[config.SAML.EmailMappingKey]; found {
+			loginUser.Email = nameVal.Values[0].Value
+		} else {
+			return util.NewRichError(
+				fiber.StatusBadRequest,
+				"unable to provision user on-the-fly",
+				map[string]string{"cause": "missing email address field", "external_id": assertionInfo.NameID},
+			)
+		}
+
 		loginUser.ID = shortuuid.New()
 
 		if err := e.db.CreateUser(loginUser); err != nil {

@@ -38,12 +38,16 @@ type samlConfig struct {
 	SSOURL          string
 	rawIDPCert      string
 	IDPCertificates dsig.X509CertificateStore
+	NameMappingKey  string
+	EmailMappingKey string
 }
 
 var SAML = &samlConfig{
-	Autoload:    asBool(fetchFromFile("saml.autoload")),
-	MetadataURL: asString(fetchFromFile("saml.metadataURL")),
-	EntityID:    asString(fetchFromFile("saml.idp.entityID")),
-	SSOURL:      asString(fetchFromFile("saml.idp.ssoURL")),
-	rawIDPCert:  asString(fetchFromFile("saml.idp.signingCertificate")),
+	Autoload:        asBool(fetchFromFile("saml.autoload")),
+	MetadataURL:     asString(fetchFromFile("saml.metadataURL")),
+	EntityID:        asString(fetchFromFile("saml.idp.entityID")),
+	SSOURL:          asString(fetchFromFile("saml.idp.ssoURL")),
+	rawIDPCert:      asString(fetchFromFile("saml.idp.signingCertificate")),
+	NameMappingKey:  asString(withDefault("saml.mappings.name", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")),
+	EmailMappingKey: asString(withDefault("saml.mappings.email", "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")),
 }

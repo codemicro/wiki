@@ -4,7 +4,8 @@ CREATE TABLE "users"
 (
     id          TEXT(36) PRIMARY KEY,
     external_id TEXT UNIQUE,
-    name        TEXT
+    name        TEXT,
+    email       TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE "session_key"

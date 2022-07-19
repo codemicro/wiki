@@ -9,23 +9,24 @@ type User struct {
 	ID         string         `db:"id"`
 	ExternalID string         `db:"external_id"`
 	Name       sql.NullString `db:"name"`
+	Email      string         `db:"email"`
 }
 
 func (db *DB) GetUserByID(id string) (*User, error) {
 	u := new(User)
-	err := db.pool.Get(u, `SELECT * FROM "users" WHERE 'id' = $1`, id)
+	err := db.pool.Get(u, `SELECT * FROM "users" WHERE "id" = $1`, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
 		return nil, errors.WithStack(err)
 	}
-	return nil, nil
+	return u, nil
 }
 
-func (db *DB) GetUserByExternalID(id string) (*User, error) {
+func (db *DB) GetUserByExternalID(externalID string) (*User, error) {
 	u := new(User)
-	err := db.pool.Get(u, `SELECT * FROM "users" WHERE 'external_id' = $1`, id)
+	err := db.pool.Get(u, `SELECT * FROM "users" WHERE "external_id" = $1`, externalID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
@@ -46,7 +47,7 @@ func (db *DB) CreateUser(u *User) error {
 	defer smartRollback(tx)
 
 	_, err = tx.NamedExec(
-		`INSERT INTO "users"("id", "external_id", "name") VALUES (:id, :external_id, :name)`,
+		`INSERT INTO "users"("id", "external_id", "name", "email") VALUES (:id, :external_id, :name, :email)`,
 		u,
 	)
 	if err != nil {
