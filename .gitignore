@@ -1,2 +1,4 @@
 config.yml
 wiki.sqlite3.db
+*.css
+*.css.map

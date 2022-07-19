@@ -1,14 +1,22 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"github.com/codemicro/wiki/wiki/config"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/endpoints"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"net/http"
 	"strconv"
 )
+
+//go:generate sass static/:static/
+
+//go:embed static
+var staticAssets embed.FS
 
 func run() error {
 	err := config.SAML.Load()
@@ -31,6 +39,11 @@ func run() error {
 	}
 
 	app := e.SetupApp()
+
+	app.Use("/", filesystem.New(filesystem.Config{
+		Root:       http.FS(staticAssets),
+		PathPrefix: "static",
+	}))
 
 	serveAddr := config.HTTP.Host + ":" + strconv.Itoa(config.HTTP.Port)
 
