@@ -17,8 +17,8 @@ func (e *Endpoints) Index(ctx *fiber.Ctx) error {
 			),
 			views.ControlBox(
 				elems.Ul(
-					elems.Li(views.Anchor(urls.AuthLogin, g.Text("Log in"))),
-					elems.Li(views.Anchor("/~/list", g.Text("List all articles"))),
+					elems.Li(views.Anchor(urls.Make(urls.AuthLogin), g.Text("Log in"))),
+					elems.Li(views.Anchor(urls.Make("/~/list"), g.Text("List all articles"))),
 				),
 			),
 		},

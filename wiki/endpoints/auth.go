@@ -6,5 +6,5 @@ import (
 )
 
 func (e *Endpoints) Get_Login(ctx *fiber.Ctx) error {
-	return ctx.Redirect(urls.AuthSAMLInitiate)
+	return ctx.Redirect(urls.Make(urls.AuthSAMLInitiate))
 }

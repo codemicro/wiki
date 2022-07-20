@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/codemicro/wiki/wiki/urls"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
@@ -27,7 +28,7 @@ func BasePage(bp BasePageProps) g.Node {
 				TitleEl(g.Text(bp.Title)),
 				Link(
 					Rel("stylesheet"),
-					Href("/main.css"),
+					Href(urls.Make("/main.css")),
 				)},
 				bp.HeadNodes...,
 			)...),
