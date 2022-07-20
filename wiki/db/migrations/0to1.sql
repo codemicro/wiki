@@ -28,6 +28,12 @@ CREATE TABLE "pages"
     content    TEXT      NOT NULL
 );
 
+INSERT INTO "pages"("id", "title", "created_at", "updated_at", "content")
+VALUES ('index', 'Index', '2000-01-01 00:00:00.00+00:00', '2000-01-01 00:00:00.00+00:00',
+        '# Wiki
+
+Welcome to the Wiki!');
+
 CREATE TABLE "page_tag_mapping"
 (
     page_id TEXT NOT NULL,

@@ -74,7 +74,8 @@ func (e *Endpoints) Get_ListTagPages(ctx *fiber.Ctx) error {
 	}
 
 	return sendNode(ctx, views.TagPagesPage(views.TagPagesPageProps{
-		Tag:   tag,
-		Pages: pages,
+		LogInControlListItemProps: e.makeLoginProps(ctx),
+		Tag:                       tag,
+		Pages:                     pages,
 	}))
 }

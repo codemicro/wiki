@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
+	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
+	"net/url"
 )
 
 type BasePageProps struct {
@@ -57,11 +59,28 @@ func ControlBox(children ...g.Node) g.Node {
 	)
 }
 
+type LogInControlListItemProps struct {
+	Ctx        *fiber.Ctx
+	IsLoggedIn bool
+}
+
+func LogInControlListItem(props LogInControlListItemProps) g.Node {
+	return g.If(
+		!props.IsLoggedIn,
+		Li(
+			Anchor(urls.Make(urls.AuthLogin)+"?next="+url.QueryEscape(urls.Make(props.Ctx.OriginalURL())), g.Text("Log in")),
+		),
+	)
+}
+
 func Anchor(url string, children ...g.Node) g.Node {
 	return A(append(children, Href(url))...)
 }
 
 func TagList(tags []*db.Tag, tagFrequencies map[*db.Tag]int) g.Node {
+	if len(tags) == 0 {
+		return g.Text("no tags found")
+	}
 	var nodes []g.Node
 	for i, tag := range tags {
 		text := tag.Name

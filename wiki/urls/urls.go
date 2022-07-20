@@ -36,6 +36,9 @@ func Make(path string, subs ...string) string {
 	var n int
 	for i, item := range sp {
 		if strings.HasPrefix(item, ":") {
+			if n >= len(subs) {
+				subs = append(subs, "!MISSING")
+			}
 			sp[i] = subs[n]
 			n += 1
 		}

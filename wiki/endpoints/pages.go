@@ -10,9 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/pkg/errors"
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
 )
 
 func (e *Endpoints) Get_ListAllPages(ctx *fiber.Ctx) error {
@@ -20,7 +17,10 @@ func (e *Endpoints) Get_ListAllPages(ctx *fiber.Ctx) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	return sendNode(ctx, views.AllPagesPage(pages))
+	return sendNode(ctx, views.AllPagesPage(views.AllPagesPageProps{
+		LogInControlListItemProps: e.makeLoginProps(ctx),
+		Pages:                     pages,
+	}))
 }
 
 func (e *Endpoints) NewPage(ctx *fiber.Ctx) error {
@@ -45,7 +45,7 @@ func (e *Endpoints) NewPage(ctx *fiber.Ctx) error {
 		return sendNode(ctx, views.EditPagePage(views.EditPageProps{
 			ActionURL: urls.Make(urls.NewPage),
 			CancelURL: urls.Make(urls.Index),
-			
+
 			TitleKey:      titleKey,
 			ContentKey:    contentKey,
 			TagKey:        tagKey,
@@ -125,13 +125,6 @@ func (e *Endpoints) NewPage(ctx *fiber.Ctx) error {
 	}
 }
 
-var markdownRenderer = goldmark.New(
-	goldmark.WithExtensions(extension.GFM),
-	goldmark.WithParserOptions(
-		parser.WithAutoHeadingID(),
-	),
-)
-
 func (e *Endpoints) Get_ViewPage(ctx *fiber.Ctx) error {
 	pageID := ctx.Params(urls.PageIDParameter)
 	page, err := e.db.GetPageByID(pageID)
@@ -153,9 +146,10 @@ func (e *Endpoints) Get_ViewPage(ctx *fiber.Ctx) error {
 	}
 
 	return sendNode(ctx, views.ViewPagePage(views.ViewPagePageProps{
-		Page:     page,
-		PageTags: tags,
-		Rendered: buf.String(),
+		LogInControlListItemProps: e.makeLoginProps(ctx),
+		Page:                      page,
+		PageTags:                  tags,
+		Rendered:                  buf.String(),
 	}))
 }
 

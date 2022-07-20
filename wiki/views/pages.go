@@ -10,29 +10,29 @@ import (
 )
 
 type IndexPageProps struct {
-	IsLoggedIn     bool
-	Tags           []*db.Tag
-	TagFrequencies map[*db.Tag]int
+	LogInControlListItemProps
+	RenderedContent string
+	Tags            []*db.Tag
+	TagFrequencies  map[*db.Tag]int
 }
 
 func IndexPage(props IndexPageProps) g.Node {
 	return BasePage(BasePageProps{
 		BodyNodes: []g.Node{
 			Container(
-				H1(g.Text("Wiki")),
-				P(g.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. In nibh mauris cursus mattis molestie a iaculis at erat. At imperdiet dui accumsan sit amet nulla facilisi. Tristique magna sit amet purus. Felis bibendum ut tristique et. Cras adipiscing enim eu turpis egestas pretium aenean pharetra magna. Ut consequat semper viverra nam. Ullamcorper sit amet risus nullam eget felis. Eget dolor morbi non arcu risus. Aenean pharetra magna ac placerat vestibulum lectus mauris ultrices eros. Rhoncus aenean vel elit scelerisque mauris pellentesque. Eu scelerisque felis imperdiet proin. Pretium fusce id velit ut. Pharetra magna ac placerat vestibulum lectus mauris ultrices eros in.")),
+				//H1(g.Text("Wiki")),
+				g.Raw(props.RenderedContent),
 				H4(g.Text("Tags")),
 				TagList(props.Tags, props.TagFrequencies),
 			),
 			ControlBox(
 				Ul(
-					g.If(!props.IsLoggedIn, Li(Anchor(urls.Make(urls.AuthLogin), g.Text("Log in")))),
+					LogInControlListItem(props.LogInControlListItemProps),
 					Li(Anchor(urls.Make(urls.Pages), g.Text("List all pages"))),
-					g.If(props.IsLoggedIn, g.Group([]g.Node{
+					g.If(props.LogInControlListItemProps.IsLoggedIn, g.Group([]g.Node{
 						Li(Anchor(urls.Make(urls.NewTag), g.Text("Create new tag"))),
 						Li(Anchor(urls.Make(urls.NewPage), g.Text("Create new page"))),
 					})),
-					g.Text("TODO"),
 				),
 			),
 		},
@@ -122,21 +122,30 @@ func EditPagePage(props EditPageProps) g.Node {
 	})
 }
 
-func AllPagesPage(pages []*db.Page) g.Node {
-	sort.Slice(pages, func(i, j int) bool {
-		return pages[i].Title < pages[j].Title
+type AllPagesPageProps struct {
+	LogInControlListItemProps
+	Pages []*db.Page
+}
+
+func AllPagesPage(props AllPagesPageProps) g.Node {
+	sort.Slice(props.Pages, func(i, j int) bool {
+		return props.Pages[i].Title < props.Pages[j].Title
 	})
 
 	return BasePage(BasePageProps{
 		BodyNodes: []g.Node{
 			Container(
 				H1(g.Text("All pages")),
-				PageTable(pages),
+				PageTable(props.Pages),
 			),
 			ControlBox(
 				Ul(
+					LogInControlListItem(props.LogInControlListItemProps),
+					g.If(
+						props.LogInControlListItemProps.IsLoggedIn,
+						Li(Anchor(urls.Make(urls.NewPage), g.Text("Create new page"))),
+					),
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
-					g.Text("TODO"),
 				),
 			),
 		},
@@ -145,6 +154,7 @@ func AllPagesPage(pages []*db.Page) g.Node {
 }
 
 type TagPagesPageProps struct {
+	LogInControlListItemProps
 	Tag   *db.Tag
 	Pages []*db.Page
 }
@@ -162,8 +172,12 @@ func TagPagesPage(props TagPagesPageProps) g.Node {
 			),
 			ControlBox(
 				Ul(
+					LogInControlListItem(props.LogInControlListItemProps),
+					g.If(
+						props.LogInControlListItemProps.IsLoggedIn,
+						Li(Anchor(urls.Make(urls.NewPage), g.Text("Create new page"))),
+					),
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
-					g.Text("TODO"),
 				),
 			),
 		},
@@ -172,6 +186,7 @@ func TagPagesPage(props TagPagesPageProps) g.Node {
 }
 
 type ViewPagePageProps struct {
+	LogInControlListItemProps
 	Page     *db.Page
 	PageTags []*db.Tag
 	Rendered string
@@ -191,10 +206,12 @@ func ViewPagePage(props ViewPagePageProps) g.Node {
 			),
 			ControlBox(
 				Ul(
-					Li(Anchor(urls.Make(urls.EditPage, props.Page.ID), g.Text("Edit"))),
-					Li(Anchor(urls.Make(urls.DeletePage, props.Page.ID), g.Text("Delete"))),
+					LogInControlListItem(props.LogInControlListItemProps),
+					g.If(props.LogInControlListItemProps.IsLoggedIn, g.Group([]g.Node{
+						Li(Anchor(urls.Make(urls.EditPage, props.Page.ID), g.Text("Edit"))),
+						Li(Anchor(urls.Make(urls.DeletePage, props.Page.ID), g.Text("Delete"))),
+					})),
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
-					g.Text("TODO"),
 				),
 			),
 		},

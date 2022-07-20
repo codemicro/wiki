@@ -8,10 +8,14 @@ import (
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/codemicro/wiki/wiki/util"
+	"github.com/codemicro/wiki/wiki/views"
 	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
 	"github.com/pkg/errors"
 	saml "github.com/russellhaering/gosaml2"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 	"net/url"
 	"time"
 )
@@ -19,6 +23,13 @@ import (
 const (
 	sessionCookieKey = "cdmwiki_session"
 	sessionValidFor  = time.Hour * 24 * 7
+)
+
+var markdownRenderer = goldmark.New(
+	goldmark.WithExtensions(extension.GFM),
+	goldmark.WithParserOptions(
+		parser.WithAutoHeadingID(),
+	),
 )
 
 type Endpoints struct {
@@ -64,6 +75,30 @@ func (e *Endpoints) SetupApp() *fiber.App {
 		DisableStartupMessage: true,
 	})
 
+	app.Use(func(ctx *fiber.Ctx) error {
+		signed := ctx.Cookies(sessionCookieKey)
+		if signed == "" {
+			ctx.Locals("isAuthed", false)
+			return ctx.Next()
+		}
+		signedBytes := []byte(signed)
+
+		val, err := e.tokenGenerator.Unsign(signedBytes)
+		if err != nil {
+			ctx.Locals("isAuthed", false)
+			return ctx.Next()
+		}
+
+		if time.Now().UTC().Sub(e.tokenGenerator.Parse(signedBytes).Timestamp) > sessionValidFor {
+			ctx.Locals("isAuthed", false)
+			return ctx.Next()
+		}
+
+		ctx.Locals("isAuthed", true)
+		ctx.Locals("currentUserID", string(val))
+		return ctx.Next()
+	})
+
 	app.Get(urls.Index, e.Index)
 
 	app.Get(urls.ViewPage, e.Get_ViewPage)
@@ -92,22 +127,19 @@ func sendNode(ctx *fiber.Ctx, node g.Node) error {
 }
 
 func (e *Endpoints) checkAuth(ctx *fiber.Ctx) (string, bool) {
-	signed := ctx.Cookies(sessionCookieKey)
-	if signed == "" {
-		return "", false
-	}
-	signedBytes := []byte(signed)
-
-	val, err := e.tokenGenerator.Unsign(signedBytes)
-	if err != nil {
+	if !ctx.Locals("isAuthed").(bool) {
 		return "", false
 	}
 
-	if time.Now().UTC().Sub(e.tokenGenerator.Parse(signedBytes).Timestamp) > sessionValidFor {
-		return "", false
-	}
+	return ctx.Locals("currentUserID").(string), true
+}
 
-	return string(val), true
+func (e *Endpoints) makeLoginProps(ctx *fiber.Ctx) views.LogInControlListItemProps {
+	_, lo := e.checkAuth(ctx)
+	return views.LogInControlListItemProps{
+		Ctx:        ctx,
+		IsLoggedIn: lo,
+	}
 }
 
 func redirectForSignIn(ctx *fiber.Ctx) error {
