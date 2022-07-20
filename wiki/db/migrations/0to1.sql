@@ -21,11 +21,17 @@ CREATE TABLE "tags"
 
 CREATE TABLE "pages"
 (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
+    id         TEXT PRIMARY KEY,
+    title      TEXT      NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    content TEXT NOT NULL
+    content    TEXT      NOT NULL
+);
+
+CREATE TABLE "page_tag_mapping"
+(
+    page_id TEXT NOT NULL,
+    tag_id  TEXT NOT NULL
 );
 
 CREATE TABLE "version"

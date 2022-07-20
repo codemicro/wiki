@@ -21,11 +21,12 @@ const (
 	AuthSAMLInbound  = AuthSAML + "/acs"
 
 	Tags         = "/tags"
-	CreateTag    = Tags + "/new"
+	NewTag       = Tags + "/new"
 	ListTagPages = Tags + "/:" + TagIDParameter
 
-	Pages    = "/~"
-	ViewPage = Pages + "/:" + PageIDParameter
+	Pages    = "/pages"
+	ViewPage = "/~/:" + PageIDParameter
+	NewPage  = Pages + "/new"
 )
 
 func Make(path string, subs ...string) string {

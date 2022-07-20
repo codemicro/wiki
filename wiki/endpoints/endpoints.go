@@ -12,6 +12,7 @@ import (
 	g "github.com/maragudk/gomponents"
 	"github.com/pkg/errors"
 	saml "github.com/russellhaering/gosaml2"
+	"net/url"
 	"time"
 )
 
@@ -66,9 +67,12 @@ func (e *Endpoints) SetupApp() *fiber.App {
 	app.Get(urls.Index, e.Index)
 
 	app.Get(urls.Pages, e.Get_ListAllPages)
+	app.Get(urls.NewPage, e.NewPage)
+	app.Post(urls.NewPage, e.NewPage)
 
-	app.Get(urls.CreateTag, e.CreateTag)
-	app.Post(urls.CreateTag, e.CreateTag)
+	app.Get(urls.NewTag, e.CreateTag)
+	app.Post(urls.NewTag, e.CreateTag)
+	app.Get(urls.ListTagPages, e.Get_ListTagPages)
 
 	app.Get(urls.AuthLogin, e.Get_Login)
 	app.Get(urls.AuthSAMLInitiate, e.Get_SAMLInitiate)
@@ -101,4 +105,8 @@ func (e *Endpoints) checkAuth(ctx *fiber.Ctx) (string, bool) {
 	}
 
 	return string(val), true
+}
+
+func redirectForSignIn(ctx *fiber.Ctx) error {
+	return ctx.Redirect(urls.Make(urls.AuthLogin) + "?next=" + url.QueryEscape(ctx.OriginalURL()))
 }

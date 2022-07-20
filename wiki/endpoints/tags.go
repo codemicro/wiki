@@ -13,7 +13,7 @@ import (
 func (e *Endpoints) CreateTag(ctx *fiber.Ctx) error {
 	_, ok := e.checkAuth(ctx)
 	if !ok {
-		return ctx.Redirect(urls.Make(urls.AuthLogin))
+		return redirectForSignIn(ctx)
 	}
 
 	const tagNameKey = "tagName"
@@ -27,6 +27,13 @@ func (e *Endpoints) CreateTag(ctx *fiber.Ctx) error {
 	case fiber.MethodPost:
 		// process things
 		tagName := ctx.FormValue(tagNameKey)
+
+		if tagName == "" {
+			return sendNode(ctx, views.CreateTagPage(views.CreateTagPageProps{
+				TagNameKey: tagNameKey,
+				Problem:    "Tag name required",
+			}))
+		}
 
 		tag := &db.Tag{
 			ID:   shortuuid.New(),
@@ -48,4 +55,26 @@ func (e *Endpoints) CreateTag(ctx *fiber.Ctx) error {
 	default:
 		return errors.WithStack(fmt.Errorf("unreachable code reached: unknown method %s", ctx.Method()))
 	}
+}
+
+func (e *Endpoints) Get_ListTagPages(ctx *fiber.Ctx) error {
+	tagID := ctx.Params(urls.TagIDParameter)
+
+	tag, err := e.db.GetTagByID(tagID)
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return fiber.ErrNotFound
+		}
+		return errors.WithStack(err)
+	}
+
+	pages, err := e.db.GetPagesWithTag(tagID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return sendNode(ctx, views.TagPagesPage(views.TagPagesPageProps{
+		Tag:   tag,
+		Pages: pages,
+	}))
 }
