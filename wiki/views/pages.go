@@ -1,24 +1,32 @@
 package views
 
 import (
+	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )
 
-func IndexPage(isLoggedIn bool) g.Node {
+type IndexPageProps struct {
+	IsLoggedIn bool
+	Tags       []*db.Tag
+}
+
+func IndexPage(props IndexPageProps) g.Node {
 	return BasePage(BasePageProps{
 		BodyNodes: []g.Node{
 			Container(
 				H1(g.Text("Wiki")),
-				P(g.Text("TODO: List tags")),
+				P(g.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. In nibh mauris cursus mattis molestie a iaculis at erat. At imperdiet dui accumsan sit amet nulla facilisi. Tristique magna sit amet purus. Felis bibendum ut tristique et. Cras adipiscing enim eu turpis egestas pretium aenean pharetra magna. Ut consequat semper viverra nam. Ullamcorper sit amet risus nullam eget felis. Eget dolor morbi non arcu risus. Aenean pharetra magna ac placerat vestibulum lectus mauris ultrices eros. Rhoncus aenean vel elit scelerisque mauris pellentesque. Eu scelerisque felis imperdiet proin. Pretium fusce id velit ut. Pharetra magna ac placerat vestibulum lectus mauris ultrices eros in.")),
+				H4(g.Text("Tags")),
+				TagTable(props.Tags),
 			),
 			ControlBox(
 				Ul(
-					g.If(!isLoggedIn, Li(Anchor(urls.Make(urls.AuthLogin), g.Text("Log in")))),
+					g.If(!props.IsLoggedIn, Li(Anchor(urls.Make(urls.AuthLogin), g.Text("Log in")))),
 					Li(Anchor(urls.Make("/~/list"), g.Text("List all articles"))),
-					g.If(isLoggedIn, g.Group([]g.Node{
+					g.If(props.IsLoggedIn, g.Group([]g.Node{
 						Li(Anchor(urls.Make(urls.CreateTag), g.Text("Create new tag"))),
 					})),
 				),

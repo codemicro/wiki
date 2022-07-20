@@ -70,3 +70,11 @@ div.controlBox {
 p.error {
   color: red;
 }
+
+table {
+  width: 100%;
+
+  tbody tr:hover {
+    background-color: lightgrey;
+  }
+}

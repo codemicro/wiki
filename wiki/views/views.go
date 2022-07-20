@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
@@ -57,4 +58,22 @@ func ControlBox(children ...g.Node) g.Node {
 
 func Anchor(url string, children ...g.Node) g.Node {
 	return A(append(children, Href(url))...)
+}
+
+func TagTable(tags []*db.Tag) g.Node {
+	return Table(
+		//THead(
+		//	Th(g.Text("Tag name")),
+		//	Th(),
+		//),
+		TBody(
+			g.Map(len(tags), func(i int) g.Node {
+				tag := tags[i]
+				return Tr(
+					Td(g.Text(tag.Name)),
+					Td(Anchor(urls.Make(urls.ListTagPages, tag.ID), g.Text("[View]"))),
+				)
+			})...,
+		),
+	)
 }

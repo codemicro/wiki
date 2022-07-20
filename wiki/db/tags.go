@@ -11,9 +11,17 @@ type Tag struct {
 	Name string `db:"name"`
 }
 
+func (db *DB) GetAllTags() ([]*Tag, error) {
+	var o []*Tag
+	if err := db.pool.Select(&o, `SELECT * FROM "tags";`); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return o, nil
+}
+
 func (db *DB) GetTagByID(id string) (*Tag, error) {
 	t := new(Tag)
-	if err := db.pool.Get(t, `SELECT * FROM "tags" WHERE "id" = $1`, id); err != nil {
+	if err := db.pool.Get(t, `SELECT * FROM "tags" WHERE "id" = $1;`, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
@@ -24,7 +32,7 @@ func (db *DB) GetTagByID(id string) (*Tag, error) {
 
 func (db *DB) GetTagByName(name string) (*Tag, error) {
 	t := new(Tag)
-	if err := db.pool.Get(t, `SELECT * FROM "tags" WHERE "name" = $1`, name); err != nil {
+	if err := db.pool.Get(t, `SELECT * FROM "tags" WHERE "name" = $1;`, name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
@@ -45,7 +53,7 @@ func (db *DB) CreateTag(tag *Tag) error {
 	}
 	defer smartRollback(tx)
 
-	_, err = tx.NamedExec(`INSERT INTO "tags"("id", "name") VALUES(:id, :name)`, tag)
+	_, err = tx.NamedExec(`INSERT INTO "tags"("id", "name") VALUES(:id, :name);`, tag)
 	if err != nil {
 		if e, ok := err.(sqlite3.Error); ok {
 			switch e.ExtendedCode {
