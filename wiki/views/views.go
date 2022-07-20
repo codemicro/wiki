@@ -77,3 +77,25 @@ func TagTable(tags []*db.Tag) g.Node {
 		),
 	)
 }
+
+func PageTable(pages []*db.Page) g.Node {
+	return Table(
+		THead(
+			Th(g.Text("Title")),
+			Th(g.Text("Created")),
+			Th(g.Text("Updated")),
+			Th(),
+		),
+		TBody(
+			g.Map(len(pages), func(i int) g.Node {
+				page := pages[i]
+				return Tr(
+					Td(g.Text(page.Title)),
+					Td(g.Text(page.CreatedAt.Format("2006-01-02"))),
+					Td(g.Text(page.UpdatedAt.Format("2006-01-02"))),
+					Td(Anchor(urls.Make(urls.ViewPage, page.ID), g.Text("[View]"))),
+				)
+			})...,
+		),
+	)
+}

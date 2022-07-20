@@ -65,6 +65,8 @@ func (e *Endpoints) SetupApp() *fiber.App {
 
 	app.Get(urls.Index, e.Index)
 
+	app.Get(urls.Pages, e.Get_ListAllPages)
+
 	app.Get(urls.CreateTag, e.CreateTag)
 	app.Post(urls.CreateTag, e.CreateTag)
 

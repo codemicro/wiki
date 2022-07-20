@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	g "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
+	"sort"
 )
 
 type IndexPageProps struct {
@@ -25,7 +26,7 @@ func IndexPage(props IndexPageProps) g.Node {
 			ControlBox(
 				Ul(
 					g.If(!props.IsLoggedIn, Li(Anchor(urls.Make(urls.AuthLogin), g.Text("Log in")))),
-					Li(Anchor(urls.Make("/~/list"), g.Text("List all articles"))),
+					Li(Anchor(urls.Make(urls.Pages), g.Text("List all pages"))),
 					g.If(props.IsLoggedIn, g.Group([]g.Node{
 						Li(Anchor(urls.Make(urls.CreateTag), g.Text("Create new tag"))),
 					})),
@@ -61,5 +62,26 @@ func CreateTagPage(props CreateTagPageProps) g.Node {
 			),
 		},
 		Title: "Create tag",
+	})
+}
+
+func AllPagesPage(pages []*db.Page) g.Node {
+	sort.Slice(pages, func(i, j int) bool {
+		return pages[i].Title < pages[j].Title
+	})
+
+	return BasePage(BasePageProps{
+		BodyNodes: []g.Node{
+			Container(
+				H1(g.Text("All pages")),
+				PageTable(pages),
+			),
+			ControlBox(
+				Ul(
+					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
+				),
+			),
+		},
+		Title: "All pages",
 	})
 }

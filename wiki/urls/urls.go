@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	TagIDParameter = ":tagID"
+	TagIDParameter  = "tagID"
+	PageIDParameter = "pageID"
 )
 
 const (
@@ -21,7 +22,10 @@ const (
 
 	Tags         = "/tags"
 	CreateTag    = Tags + "/new"
-	ListTagPages = Tags + "/" + TagIDParameter
+	ListTagPages = Tags + "/:" + TagIDParameter
+
+	Pages    = "/~"
+	ViewPage = Pages + "/:" + PageIDParameter
 )
 
 func Make(path string, subs ...string) string {

@@ -15,6 +15,14 @@ type Page struct {
 	Content   string    `db:"content"`
 }
 
+func (db *DB) GetAllPages() ([]*Page, error) {
+	var o []*Page
+	if err := db.pool.Select(&o, `SELECT * FROM "pages"`); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return o, nil
+}
+
 func (db *DB) GetPageByID(id string) (*Page, error) {
 	p := new(Page)
 	if err := db.pool.Get(p, `SELECT * FROM "pages" WHERE "id" = $1;`, id); err != nil {
