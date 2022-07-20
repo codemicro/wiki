@@ -13,7 +13,10 @@ import (
 	"time"
 )
 
-var ErrNotFound = errors.New("db: record not found")
+var (
+	ErrNotFound        = errors.New("db: record not found")
+	ErrPKAlreadyExists = errors.New("db: primary key already exists")
+)
 
 type DB struct {
 	pool           *sqlx.DB

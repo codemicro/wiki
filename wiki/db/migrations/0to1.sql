@@ -2,7 +2,7 @@
 
 CREATE TABLE "users"
 (
-    id          TEXT(36) PRIMARY KEY,
+    id          TEXT PRIMARY KEY,
     external_id TEXT UNIQUE,
     name        TEXT,
     email       TEXT NOT NULL UNIQUE
@@ -11,6 +11,12 @@ CREATE TABLE "users"
 CREATE TABLE "session_key"
 (
     key TEXT
+);
+
+CREATE TABLE "tags"
+(
+    id   TEXT PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE "version"
