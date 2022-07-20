@@ -12,7 +12,7 @@ import (
 )
 
 func (e *Endpoints) Get_SAMLInitiate(ctx *fiber.Ctx) error {
-	u, err := e.serviceProvider.BuildAuthURL("")
+	u, err := e.serviceProvider.BuildAuthURL(ctx.Query("next"))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -21,6 +21,7 @@ func (e *Endpoints) Get_SAMLInitiate(ctx *fiber.Ctx) error {
 
 func (e *Endpoints) Post_SAMLInbound(ctx *fiber.Ctx) error {
 	rawSAMLResponse := ctx.FormValue("SAMLResponse")
+	nextURL := ctx.FormValue("RelayState", urls.Make(urls.Index))
 
 	assertionInfo, err := e.serviceProvider.RetrieveAssertionInfo(rawSAMLResponse)
 	if err != nil || assertionInfo.WarningInfo.InvalidTime || assertionInfo.WarningInfo.NotInAudience {
@@ -69,5 +70,5 @@ func (e *Endpoints) Post_SAMLInbound(ctx *fiber.Ctx) error {
 		HTTPOnly: true,
 	})
 
-	return ctx.Redirect(urls.Index)
+	return ctx.Redirect(nextURL)
 }
