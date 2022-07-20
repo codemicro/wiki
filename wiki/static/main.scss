@@ -66,3 +66,7 @@ div.controlBox {
     @include container();
   }
 }
+
+p.error {
+  color: red;
+}

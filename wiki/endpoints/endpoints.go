@@ -65,6 +65,9 @@ func (e *Endpoints) SetupApp() *fiber.App {
 
 	app.Get(urls.Index, e.Index)
 
+	app.Get(urls.CreateTag, e.CreateTag)
+	app.Post(urls.CreateTag, e.CreateTag)
+
 	app.Get(urls.AuthLogin, e.Get_Login)
 	app.Get(urls.AuthSAMLInitiate, e.Get_SAMLInitiate)
 	app.Post(urls.AuthSAMLInbound, e.Post_SAMLInbound)
@@ -77,4 +80,23 @@ func sendNode(ctx *fiber.Ctx, node g.Node) error {
 	b := new(bytes.Buffer)
 	_ = node.Render(b)
 	return ctx.Send(b.Bytes())
+}
+
+func (e *Endpoints) checkAuth(ctx *fiber.Ctx) (string, bool) {
+	signed := ctx.Cookies(sessionCookieKey)
+	if signed == "" {
+		return "", false
+	}
+	signedBytes := []byte(signed)
+
+	val, err := e.tokenGenerator.Unsign(signedBytes)
+	if err != nil {
+		return "", false
+	}
+
+	if time.Now().UTC().Sub(e.tokenGenerator.Parse(signedBytes).Timestamp) > sessionValidFor {
+		return "", false
+	}
+
+	return string(val), true
 }

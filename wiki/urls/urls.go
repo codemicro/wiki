@@ -14,6 +14,9 @@ const (
 
 	AuthSAMLInitiate = AuthSAML + "/begin"
 	AuthSAMLInbound  = AuthSAML + "/acs"
+
+	Tags      = "/tags"
+	CreateTag = Tags + "/new"
 )
 
 func Make(path string) string {

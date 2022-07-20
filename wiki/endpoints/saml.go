@@ -64,7 +64,7 @@ func (e *Endpoints) Post_SAMLInbound(ctx *fiber.Ctx) error {
 	ctx.Cookie(&fiber.Cookie{
 		Name:     sessionCookieKey,
 		Value:    string(sessionToken),
-		Expires:  time.Time{},
+		Expires:  time.Now().UTC().Add(sessionValidFor),
 		Secure:   config.HTTP.SecureCookies,
 		HTTPOnly: true,
 	})
