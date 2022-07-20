@@ -44,7 +44,7 @@ func (e *Endpoints) CreateTag(ctx *fiber.Ctx) error {
 			return errors.WithStack(err)
 		}
 
-		return ctx.Redirect("/SDKFJGHSDFJKLH") // TODO: redirect to tag listing page
+		return ctx.Redirect(urls.Make(urls.ListTagPages, tag.ID))
 	default:
 		return errors.WithStack(fmt.Errorf("unreachable code reached: unknown method %s", ctx.Method()))
 	}
