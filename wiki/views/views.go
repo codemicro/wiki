@@ -5,26 +5,35 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-func BasePage(bodyNodes []g.Node) g.Node {
+type BasePageProps struct {
+	BodyNodes   []g.Node
+	HeadNodes   []g.Node
+	Title       string
+	Description string
+}
+
+func BasePage(bp BasePageProps) g.Node {
+	// TODO: Use `bp.Description`
 	return Doctype(
 		HTML(
 			Lang("en"),
 
-			Head(
+			Head(append([]g.Node{
 				Meta(Charset("utf8")),
 				Meta(
 					Name("viewport"),
 					Content("width=device-width, initial-scale=1"),
 				),
-				TitleEl(g.Text("Wiki")),
+				TitleEl(g.Text(bp.Title)),
 				Link(
 					Rel("stylesheet"),
 					Href("/main.css"),
-				),
-			),
+				)},
+				bp.HeadNodes...,
+			)...),
 
 			Body(
-				bodyNodes...,
+				bp.BodyNodes...,
 			),
 		),
 	)
@@ -43,4 +52,8 @@ func ControlBox(children ...g.Node) g.Node {
 			H4(g.Text("Controls")),
 		}, children...)...,
 	)
+}
+
+func Anchor(url string, children ...g.Node) g.Node {
+	return A(append(children, Href(url))...)
 }

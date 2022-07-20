@@ -8,8 +8,9 @@ import (
 const (
 	Index = "/"
 
-	Auth     = "/auth"
-	AuthSAML = Auth + "/saml2"
+	Auth      = "/auth"
+	AuthLogin = Auth + "/login"
+	AuthSAML  = Auth + "/saml2"
 
 	AuthSAMLInitiate = AuthSAML + "/begin"
 	AuthSAMLInbound  = AuthSAML + "/acs"
