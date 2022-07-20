@@ -66,6 +66,7 @@ func (e *Endpoints) SetupApp() *fiber.App {
 
 	app.Get(urls.Index, e.Index)
 
+	app.Get(urls.ViewPage, e.Get_ViewPage)
 	app.Get(urls.Pages, e.Get_ListAllPages)
 	app.Get(urls.NewPage, e.NewPage)
 	app.Post(urls.NewPage, e.NewPage)

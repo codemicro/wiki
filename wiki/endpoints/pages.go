@@ -1,13 +1,18 @@
 package endpoints
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
+	"github.com/codemicro/wiki/wiki/util"
 	"github.com/codemicro/wiki/wiki/views"
 	"github.com/gofiber/fiber/v2"
 	"github.com/lithammer/shortuuid/v4"
 	"github.com/pkg/errors"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
 )
 
 func (e *Endpoints) Get_ListAllPages(ctx *fiber.Ctx) error {
@@ -109,4 +114,32 @@ func (e *Endpoints) NewPage(ctx *fiber.Ctx) error {
 	default:
 		return errors.WithStack(fmt.Errorf("unreachable code reached: unknown method %s", ctx.Method()))
 	}
+}
+
+var markdownRenderer = goldmark.New(
+	goldmark.WithExtensions(extension.GFM),
+	goldmark.WithParserOptions(
+		parser.WithAutoHeadingID(),
+	),
+)
+
+func (e *Endpoints) Get_ViewPage(ctx *fiber.Ctx) error {
+	pageID := ctx.Params(urls.PageIDParameter)
+	page, err := e.db.GetPageByID(pageID)
+	if err != nil {
+		if errors.Is(err, db.ErrNotFound) {
+			return fiber.ErrNotFound
+		}
+		return errors.WithStack(err)
+	}
+
+	var buf bytes.Buffer
+	if err := markdownRenderer.Convert([]byte(page.Content), &buf); err != nil {
+		return util.NewRichError(fiber.StatusInternalServerError, "Could not render markdown", err)
+	}
+
+	return sendNode(ctx, views.ViewPagePage(views.ViewPagePageProps{
+		Page:     page,
+		Rendered: buf.String(),
+	}))
 }

@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/gofiber/fiber/v2"
@@ -31,6 +32,7 @@ func IndexPage(props IndexPageProps) g.Node {
 						Li(Anchor(urls.Make(urls.NewTag), g.Text("Create new tag"))),
 						Li(Anchor(urls.Make(urls.NewPage), g.Text("Create new page"))),
 					})),
+					g.Text("TODO"),
 				),
 			),
 		},
@@ -131,6 +133,7 @@ func AllPagesPage(pages []*db.Page) g.Node {
 			ControlBox(
 				Ul(
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
+					g.Text("TODO"),
 				),
 			),
 		},
@@ -157,9 +160,38 @@ func TagPagesPage(props TagPagesPageProps) g.Node {
 			ControlBox(
 				Ul(
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
+					g.Text("TODO"),
 				),
 			),
 		},
 		Title: props.Tag.Name,
+	})
+}
+
+type ViewPagePageProps struct {
+	Page     *db.Page
+	Rendered string
+}
+
+func ViewPagePage(props ViewPagePageProps) g.Node {
+	return BasePage(BasePageProps{
+		BodyNodes: []g.Node{
+			Container(
+				H1(g.Text(props.Page.Title)),
+				P(Class("secondary"), g.Raw(fmt.Sprintf(
+					"Created on %s, last updated on %s",
+					props.Page.CreatedAt.Format("2006-01-02 15:04"),
+					props.Page.UpdatedAt.Format("2006-01-02 15:04"),
+				))),
+				g.Raw(props.Rendered),
+			),
+			ControlBox(
+				Ul(
+					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
+					g.Text("TODO"),
+				),
+			),
+		},
+		Title: props.Page.Title,
 	})
 }
