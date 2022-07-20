@@ -24,9 +24,11 @@ const (
 	NewTag       = Tags + "/new"
 	ListTagPages = Tags + "/:" + TagIDParameter
 
-	Pages    = "/pages"
-	ViewPage = "/~/:" + PageIDParameter
-	NewPage  = Pages + "/new"
+	Pages      = "/pages"
+	ViewPage   = "/~/:" + PageIDParameter
+	NewPage    = Pages + "/new"
+	EditPage   = Pages + "/:" + PageIDParameter + "/edit"
+	DeletePage = Pages + "/:" + PageIDParameter + "/delete"
 )
 
 func Make(path string, subs ...string) string {

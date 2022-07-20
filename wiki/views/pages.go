@@ -1,7 +1,6 @@
 package views
 
 import (
-	"fmt"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	"github.com/gofiber/fiber/v2"
@@ -11,8 +10,9 @@ import (
 )
 
 type IndexPageProps struct {
-	IsLoggedIn bool
-	Tags       []*db.Tag
+	IsLoggedIn     bool
+	Tags           []*db.Tag
+	TagFrequencies map[*db.Tag]int
 }
 
 func IndexPage(props IndexPageProps) g.Node {
@@ -22,7 +22,7 @@ func IndexPage(props IndexPageProps) g.Node {
 				H1(g.Text("Wiki")),
 				P(g.Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. In nibh mauris cursus mattis molestie a iaculis at erat. At imperdiet dui accumsan sit amet nulla facilisi. Tristique magna sit amet purus. Felis bibendum ut tristique et. Cras adipiscing enim eu turpis egestas pretium aenean pharetra magna. Ut consequat semper viverra nam. Ullamcorper sit amet risus nullam eget felis. Eget dolor morbi non arcu risus. Aenean pharetra magna ac placerat vestibulum lectus mauris ultrices eros. Rhoncus aenean vel elit scelerisque mauris pellentesque. Eu scelerisque felis imperdiet proin. Pretium fusce id velit ut. Pharetra magna ac placerat vestibulum lectus mauris ultrices eros in.")),
 				H4(g.Text("Tags")),
-				TagTable(props.Tags),
+				TagList(props.Tags, props.TagFrequencies),
 			),
 			ControlBox(
 				Ul(
@@ -69,6 +69,9 @@ func CreateTagPage(props CreateTagPageProps) g.Node {
 }
 
 type EditPageProps struct {
+	ActionURL string
+	CancelURL string
+
 	TitleKey, ContentKey, TagKey string
 	Tags                         []*db.Tag
 	EditPageTitle                string
@@ -90,7 +93,7 @@ func EditPagePage(props EditPageProps) g.Node {
 			Container(
 				H1(g.Text(props.EditPageTitle)),
 				FormEl(
-					Action(urls.Make(urls.NewPage)),
+					Action(props.ActionURL),
 					Method(fiber.MethodPost),
 					Input(Class("full-width"), Type("text"), Name(props.TitleKey), Placeholder("Page title"), g.If(props.TitleValue != "", Value(props.TitleValue))),
 					Br(),
@@ -111,7 +114,7 @@ func EditPagePage(props EditPageProps) g.Node {
 			),
 			ControlBox(
 				Ul(
-					Li(Anchor(urls.Make(urls.Index), g.Text("Cancel"))),
+					Li(Anchor(props.CancelURL, g.Text("Cancel"))),
 				),
 			),
 		},
@@ -170,6 +173,7 @@ func TagPagesPage(props TagPagesPageProps) g.Node {
 
 type ViewPagePageProps struct {
 	Page     *db.Page
+	PageTags []*db.Tag
 	Rendered string
 }
 
@@ -178,15 +182,17 @@ func ViewPagePage(props ViewPagePageProps) g.Node {
 		BodyNodes: []g.Node{
 			Container(
 				H1(g.Text(props.Page.Title)),
-				P(Class("secondary"), g.Raw(fmt.Sprintf(
+				P(Class("secondary"), g.Textf(
 					"Created on %s, last updated on %s",
 					props.Page.CreatedAt.Format("2006-01-02 15:04"),
 					props.Page.UpdatedAt.Format("2006-01-02 15:04"),
-				))),
+				), Br(), g.Text("Tags: "), TagList(props.PageTags, nil)),
 				g.Raw(props.Rendered),
 			),
 			ControlBox(
 				Ul(
+					Li(Anchor(urls.Make(urls.EditPage, props.Page.ID), g.Text("Edit"))),
+					Li(Anchor(urls.Make(urls.DeletePage, props.Page.ID), g.Text("Delete"))),
 					Li(Anchor(urls.Make(urls.Index), g.Text("Home"))),
 					g.Text("TODO"),
 				),

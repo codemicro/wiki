@@ -41,6 +41,47 @@ func (db *DB) GetTagByName(name string) (*Tag, error) {
 	return t, nil
 }
 
+func (db *DB) GetTagsByPageID(pageID string) ([]*Tag, error) {
+	var o []*Tag
+	rows, err := db.pool.Queryx(`SELECT "tag_id" FROM "page_tag_mapping" WHERE "page_id" = $1`, pageID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	for rows.Next() {
+		var tagID string
+		if err := rows.Scan(&tagID); err != nil {
+			return nil, errors.WithStack(err)
+		}
+		tag, err := db.GetTagByID(tagID)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		o = append(o, tag)
+	}
+	return o, nil
+}
+
+func (db *DB) GetTagFrequency(tag *Tag) (int, error) {
+	var f int
+	err := db.pool.Get(&f, `SELECT COUNT(*) FROM "page_tag_mapping" WHERE "tag_id"=$1`, tag.ID)
+	if err != nil {
+		return 0, errors.WithStack(err)
+	}
+	return f, nil
+}
+
+func (db *DB) GetTagFrequencies(tags []*Tag) (map[*Tag]int, error) {
+	freqs := make(map[*Tag]int)
+	for _, tag := range tags {
+		f, err := db.GetTagFrequency(tag)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		freqs[tag] = f
+	}
+	return freqs, nil
+}
+
 var ErrTagNameExists = errors.New("db: a tag with that name already exists")
 
 func (db *DB) CreateTag(tag *Tag) error {

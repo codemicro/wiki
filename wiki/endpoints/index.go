@@ -14,8 +14,14 @@ func (e *Endpoints) Index(ctx *fiber.Ctx) error {
 		return errors.WithStack(err)
 	}
 
+	tagFrequencies, err := e.db.GetTagFrequencies(tags)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	return sendNode(ctx, views.IndexPage(views.IndexPageProps{
-		IsLoggedIn: loggedIn,
-		Tags:       tags,
+		IsLoggedIn:     loggedIn,
+		Tags:           tags,
+		TagFrequencies: tagFrequencies,
 	}))
 }

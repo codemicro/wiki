@@ -1,6 +1,7 @@
 package views
 
 import (
+	"fmt"
 	"github.com/codemicro/wiki/wiki/db"
 	"github.com/codemicro/wiki/wiki/urls"
 	g "github.com/maragudk/gomponents"
@@ -58,6 +59,28 @@ func ControlBox(children ...g.Node) g.Node {
 
 func Anchor(url string, children ...g.Node) g.Node {
 	return A(append(children, Href(url))...)
+}
+
+func TagList(tags []*db.Tag, tagFrequencies map[*db.Tag]int) g.Node {
+	var nodes []g.Node
+	for i, tag := range tags {
+		text := tag.Name
+		if tagFrequencies != nil {
+			if freq, found := tagFrequencies[tag]; found {
+				text += fmt.Sprintf("(%d)", freq)
+			}
+		}
+
+		node := Anchor(urls.Make(urls.ListTagPages, tag.ID), g.Text(text))
+
+		if i != len(tags)-1 {
+			// for every single tag but the last
+			node = g.Group([]g.Node{node, g.Text(", ")})
+		}
+
+		nodes = append(nodes, node)
+	}
+	return g.Group(nodes)
 }
 
 func TagTable(tags []*db.Tag) g.Node {
