@@ -29,7 +29,7 @@ CREATE TABLE "pages"
 );
 
 INSERT INTO "pages"("id", "title", "created_at", "updated_at", "content")
-VALUES ('index', 'Index', '2000-01-01 00:00:00.00+00:00', '2000-01-01 00:00:00.00+00:00',
+VALUES ('index', 'system:index', '2000-01-01 00:00:00.00+00:00', '2000-01-01 00:00:00.00+00:00',
         '# Wiki
 
 Welcome to the Wiki!');
