@@ -52,10 +52,20 @@ func Container(children ...g.Node) g.Node {
 
 func ControlBox(children ...g.Node) g.Node {
 	return Div(
-		append([]g.Node{
-			Class("controlBox"),
-			H4(g.Text("Controls")),
-		}, children...)...,
+		Class("side-panel"),
+		Div(
+			append([]g.Node{
+				Class("control-box"),
+				H4(g.Text("Controls")),
+			}, children...)...,
+		),
+		P(
+			Class("secondary text-center"),
+			Anchor("https://github.com/codemicro/wiki", g.Text("cdmwiki is open-source software")),
+			g.Text(" that's licensed under the "),
+			Anchor("https://github.com/codemicro/wiki/blob/main/LICENSE", g.Text("GNU AGPL v3")),
+			g.Text("."),
+		),
 	)
 }
 

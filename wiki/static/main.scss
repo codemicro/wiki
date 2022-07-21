@@ -49,11 +49,7 @@ div.container {
   @include container();
 }
 
-div.controlBox {
-  background: lightgrey;
-  padding: 15px 15px 15px;
-  border-radius: 5px;
-
+div.side-panel {
   @media only screen and (min-width: $breakpoint-lg-min) {
     margin-left: 0.25%;
     width: 15%;
@@ -64,6 +60,12 @@ div.controlBox {
 
   @media only screen and (max-width: $breakpoint-lg-max) {
     @include container();
+  }
+
+  div.control-box {
+    background: lightgrey;
+    padding: 15px 15px 15px;
+    border-radius: 5px;
   }
 }
 
@@ -86,4 +88,8 @@ table {
 p.secondary {
   color: grey;
   font-style: italic;
+}
+
+.text-center {
+  text-align: center;
 }
