@@ -47,6 +47,10 @@ h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
 
 div.container {
   @include container();
+
+  img {
+    width: 100%;
+  }
 }
 
 div.side-panel {
@@ -92,4 +96,13 @@ p.secondary {
 
 .text-center {
   text-align: center;
+}
+
+pre {
+  width: 100%;
+  overflow-x: scroll;
+
+  code {
+    white-space: nowrap;
+  }
 }
